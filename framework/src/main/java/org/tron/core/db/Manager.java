@@ -290,7 +290,7 @@ public class Manager {
       () -> {
         while (isRunTriggerCapsuleProcessThread) {
           try {
-            TriggerCapsule triggerCapsule = triggerCapsuleQueue.poll(1, TimeUnit.SECONDS);
+            TriggerCapsule triggerCapsule = triggerCapsuleQueue.poll(50, TimeUnit.MICROSECONDS);
             if (triggerCapsule != null) {
               triggerCapsule.processTrigger();
             }
