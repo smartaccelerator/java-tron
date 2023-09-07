@@ -59,6 +59,7 @@ import org.tron.common.logsfilter.capsule.LogsFilterCapsule;
 import org.tron.common.logsfilter.capsule.SolidityTriggerCapsule;
 import org.tron.common.logsfilter.capsule.TransactionLogTriggerCapsule;
 import org.tron.common.logsfilter.capsule.TriggerCapsule;
+import org.tron.common.logsfilter.capsule.UserTriggerCapsule;
 import org.tron.common.logsfilter.trigger.ContractEventTrigger;
 import org.tron.common.logsfilter.trigger.ContractLogTrigger;
 import org.tron.common.logsfilter.trigger.ContractTrigger;
@@ -1296,12 +1297,16 @@ public class Manager {
               long oldSolidNum =
                       chainBaseManager.getDynamicPropertiesStore().getLatestSolidifiedBlockNum();
 
-              EventPluginLoader.getInstance().commitUserTrigger("beginApplyBlock");
+              if (!triggerCapsuleQueue.offer(new UserTriggerCapsule("beginApplyBlock"))) {
+                logger.info("Too many triggers, topic is beginApplyBlock");
+              }
               applyBlock(newBlock, txs);
               tmpSession.commit();
               // if event subscribe is enabled, post block trigger to queue
               postBlockTrigger(newBlock);
-              EventPluginLoader.getInstance().commitUserTrigger("endApplyBlock");
+              if (!triggerCapsuleQueue.offer(new UserTriggerCapsule("endApplyBlock"))) {
+                logger.info("Too many triggers, topic is endApplyBlock");
+              }
               // if event subscribe is enabled, post solidity trigger to queue
               postSolidityTrigger(oldSolidNum,
                       getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
@@ -2315,7 +2320,9 @@ public class Manager {
     if (eventPluginLoaded
         && (isContractTriggerEnable || isSolidityContractTriggerEnable)) {
       if (isMemPool) {
-        EventPluginLoader.getInstance().commitUserTrigger("beginMemPoolTransaction");
+        if (!triggerCapsuleQueue.offer(new UserTriggerCapsule("beginMemPoolTransaction"))) {
+          logger.info("Too many triggers, topic is beginMemPoolTransaction");
+        }
       }
       // be careful, trace.getRuntimeResult().getTriggerList() should never return null
       for (ContractTrigger trigger : trace.getRuntimeResult().getTriggerList()) {
@@ -2332,7 +2339,9 @@ public class Manager {
         }
       }
       if (isMemPool) {
-        EventPluginLoader.getInstance().commitUserTrigger("endMemPoolTransaction");
+        if (!triggerCapsuleQueue.offer(new UserTriggerCapsule("endMemPoolTransaction"))) {
+          logger.info("Too many triggers, topic is endMemPoolTransaction");
+        }
       }
     }
   }
