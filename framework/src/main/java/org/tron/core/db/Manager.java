@@ -2314,6 +2314,9 @@ public class Manager {
         .getInstance().isSolidityLogTriggerEnable();
     if (eventPluginLoaded
         && (isContractTriggerEnable || isSolidityContractTriggerEnable)) {
+      if (isMemPool) {
+        EventPluginLoader.getInstance().commitUserTrigger("beginMemPoolTransaction");
+      }
       // be careful, trace.getRuntimeResult().getTriggerList() should never return null
       for (ContractTrigger trigger : trace.getRuntimeResult().getTriggerList()) {
         ContractTriggerCapsule contractTriggerCapsule = new ContractTriggerCapsule(trigger);
@@ -2329,7 +2332,7 @@ public class Manager {
         }
       }
       if (isMemPool) {
-        EventPluginLoader.getInstance().commitUserTrigger("mempoolTransactionTrigger");
+        EventPluginLoader.getInstance().commitUserTrigger("endMemPoolTransaction");
       }
     }
   }
