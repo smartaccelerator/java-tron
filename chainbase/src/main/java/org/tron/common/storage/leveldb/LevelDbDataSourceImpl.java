@@ -122,6 +122,8 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
       }
 
       try {
+        options.cacheSize(8 * 1024 * 1024);
+        options.writeBufferSize(8 * 1024 * 1024);
         openDatabase(options);
         alive = true;
       } catch (IOException ioe) {
