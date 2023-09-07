@@ -157,6 +157,7 @@ import org.tron.core.store.WitnessScheduleStore;
 import org.tron.core.store.WitnessStore;
 import org.tron.core.utils.TransactionRegister;
 import org.tron.protos.Protocol.AccountType;
+import org.tron.protos.Protocol.Block;
 import org.tron.protos.Protocol.Permission;
 import org.tron.protos.Protocol.Transaction;
 import org.tron.protos.Protocol.Transaction.Contract;
@@ -1295,8 +1296,10 @@ public class Manager {
               long oldSolidNum =
                       chainBaseManager.getDynamicPropertiesStore().getLatestSolidifiedBlockNum();
 
+              EventPluginLoader.getInstance().commitUserTrigger("beginApplyBlock");
               applyBlock(newBlock, txs);
               tmpSession.commit();
+              EventPluginLoader.getInstance().commitUserTrigger("endApplyBlock");
               // if event subscribe is enabled, post block trigger to queue
               postBlockTrigger(newBlock);
               // if event subscribe is enabled, post solidity trigger to queue
@@ -1425,6 +1428,14 @@ public class Manager {
           String.format(" %s transaction signature validate failed", txId));
     }
 
+    boolean isMemPool = false;
+    if (!Objects.nonNull(blockCap)) {
+      isMemPool = true;
+      List<BlockCapsule> blockCapsuleList = chainBaseManager.getBlockStore().getBlockByLatestNum(1);
+      Block headBlock = blockCapsuleList.get(0).getInstance();
+      blockCap = new BlockCapsule(headBlock);
+    }
+
     TransactionTrace trace = new TransactionTrace(trxCap, StoreFactory.getInstance(),
         new RuntimeImpl());
     trxCap.setTrxTrace(trace);
@@ -1469,7 +1480,7 @@ public class Manager {
     // only trigger when process block
     if (Objects.nonNull(blockCap) && !blockCap.isMerkleRootEmpty()) {
       String blockHash = blockCap.getBlockId().toString();
-      postContractTrigger(trace, false, blockHash);
+      postContractTrigger(trace, false, blockHash, isMemPool);
     }
 
 
@@ -2284,7 +2295,7 @@ public class Manager {
         BlockCapsule oldHeadBlock = chainBaseManager.getBlockById(
             getDynamicPropertiesStore().getLatestBlockHeaderHash());
         for (TransactionCapsule trx : oldHeadBlock.getTransactions()) {
-          postContractTrigger(trx.getTrxTrace(), true, oldHeadBlock.getBlockId().toString());
+          postContractTrigger(trx.getTrxTrace(), true, oldHeadBlock.getBlockId().toString(), false);
         }
       } catch (BadItemException | ItemNotFoundException e) {
         logger.error("Block header hash does not exist or is bad: {}.",
@@ -2293,7 +2304,8 @@ public class Manager {
     }
   }
 
-  private void postContractTrigger(final TransactionTrace trace, boolean remove, String blockHash) {
+  private void postContractTrigger(final TransactionTrace trace, boolean remove, String blockHash,
+      boolean isMemPool) {
     boolean isContractTriggerEnable = EventPluginLoader.getInstance()
         .isContractEventTriggerEnable() || EventPluginLoader
         .getInstance().isContractLogTriggerEnable();
@@ -2309,11 +2321,15 @@ public class Manager {
         contractTriggerCapsule.setLatestSolidifiedBlockNumber(getDynamicPropertiesStore()
             .getLatestSolidifiedBlockNum());
         contractTriggerCapsule.setBlockHash(blockHash);
+        contractTriggerCapsule.setIsMemPool(isMemPool);
 
         if (!triggerCapsuleQueue.offer(contractTriggerCapsule)) {
           logger.info("Too many triggers, contract log trigger lost: {}.",
               trigger.getTransactionId());
         }
+      }
+      if (isMemPool) {
+        EventPluginLoader.getInstance().commitUserTrigger("mempoolTransactionTrigger");
       }
     }
   }

@@ -520,6 +520,12 @@ public class EventPluginLoader {
     }
   }
 
+  public void commitUserTrigger(String topic) {
+    if (useNativeQueue) {
+      NativeMessageQueue.getInstance().publishTrigger("{}", topic);
+    } 
+  }
+
   private String toJsonString(Object data) {
     String jsonData = "";
 

@@ -28,8 +28,14 @@ public class ContractTriggerCapsule extends TriggerCapsule {
   @Setter
   private ContractTrigger contractTrigger;
 
+  private boolean isMemPool = false;
+
   public ContractTriggerCapsule(ContractTrigger contractTrigger) {
     this.contractTrigger = contractTrigger;
+  }
+
+  public void setIsMemPool(boolean isMemPool) {
+    this.isMemPool = isMemPool;
   }
 
   public void setLatestSolidifiedBlockNumber(long latestSolidifiedBlockNumber) {
@@ -152,6 +158,7 @@ public class ContractTriggerCapsule extends TriggerCapsule {
             || (EventPluginLoader.getInstance().isSolidityLogTriggerEnable()
             && EventPluginLoader.getInstance().isSolidityLogTriggerRedundancy())) {
           ContractLogTrigger logTrigger = new ContractLogTrigger((ContractEventTrigger) event);
+          logTrigger.setIsMemPool(this.isMemPool);
           logTrigger.setTopicList(logInfo.getHexTopics());
           logTrigger.setData(logInfo.getHexData());
 
@@ -171,6 +178,7 @@ public class ContractTriggerCapsule extends TriggerCapsule {
           }
         }
       } else {
+        ((ContractLogTrigger)event).setIsMemPool(this.isMemPool);
         if (EventPluginLoader.getInstance().isContractLogTriggerEnable()) {
           EventPluginLoader.getInstance().postContractLogTrigger((ContractLogTrigger) event);
         }

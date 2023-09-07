@@ -42,4 +42,12 @@ public class ContractLogTrigger extends ContractTrigger {
     setTimeStamp(eventTrigger.getTimeStamp());
     setBlockHash(eventTrigger.getBlockHash());
   }
+
+  public void setIsMemPool(boolean isMemPool) {
+    if (isMemPool) {
+      setTriggerName(Trigger.MEMPOOL_CONTRACTLOG_TRIGGER_NAME);
+    } else {
+      setTriggerName(Trigger.CONTRACTLOG_TRIGGER_NAME);
+    }
+  }
 }
