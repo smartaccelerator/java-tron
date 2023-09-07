@@ -1299,9 +1299,9 @@ public class Manager {
               EventPluginLoader.getInstance().commitUserTrigger("beginApplyBlock");
               applyBlock(newBlock, txs);
               tmpSession.commit();
-              EventPluginLoader.getInstance().commitUserTrigger("endApplyBlock");
               // if event subscribe is enabled, post block trigger to queue
               postBlockTrigger(newBlock);
+              EventPluginLoader.getInstance().commitUserTrigger("endApplyBlock");
               // if event subscribe is enabled, post solidity trigger to queue
               postSolidityTrigger(oldSolidNum,
                       getDynamicPropertiesStore().getLatestSolidifiedBlockNum());
