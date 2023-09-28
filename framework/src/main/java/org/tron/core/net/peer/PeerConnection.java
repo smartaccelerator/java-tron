@@ -203,6 +203,18 @@ public class PeerConnection {
     syncBlockInProcess.clear();
   }
 
+  public boolean IsTooSlow(long now) {
+    long duration = (now - channel.getStartTime()) / Constant.ONE_THOUSAND;
+    if (duration < 60) {
+      return false;
+    }
+    if (channel.getAvgLatency() >= 50) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public String log() {
     long now = System.currentTimeMillis();
     BlockId syncBlockId = syncBlockToFetch.peek();

@@ -115,7 +115,8 @@ public class PeerManager {
     long now = System.currentTimeMillis();
     for (PeerConnection peer : new ArrayList<>(peers)) {
       long disconnectTime = peer.getChannel().getDisconnectTime();
-      if (disconnectTime != 0 && now - disconnectTime > DISCONNECTION_TIME_OUT) {
+      if ((disconnectTime != 0 && now - disconnectTime > DISCONNECTION_TIME_OUT)
+          || (peer.IsTooSlow(now))) {
         logger.warn("Notify disconnect peer {}.", peer.getInetSocketAddress());
         peers.remove(peer);
         if (peer.getChannel().isActive()) {
