@@ -45,6 +45,7 @@ import org.tron.core.net.service.statistics.PeerStatistics;
 import org.tron.core.net.service.statistics.TronStatsManager;
 import org.tron.core.net.service.sync.SyncService;
 import org.tron.p2p.connection.Channel;
+import org.tron.p2p.connection.ChannelManager;
 import org.tron.protos.Protocol;
 
 @Slf4j(topic = "net")
@@ -201,6 +202,7 @@ public class PeerConnection {
     syncBlockRequested.clear();
     syncBlockInProcess.clear();
     syncBlockInProcess.clear();
+    ChannelManager.notifyDisconnect(channel);
   }
 
   public boolean IsTooSlow(long now) {
