@@ -73,6 +73,9 @@ public class BypassTransactionService {
   }
 
   protected void fetchTransaction() {
+    long success = 0;
+    long fail = 0;
+
     while (true) {
       try {
         TransactionCapsule transactionCapsule = new TransactionCapsule(dealer.recv(0));
@@ -81,11 +84,17 @@ public class BypassTransactionService {
         } else {
           logger.error("txpool: manager is null");
         }
-				// logger.info("txpool: pushTransaction success");
+        success += 1;
+        if (success % 100 == 0) {
+          logger.info("txpool: success={} fail={}", success, fail);
+        }
+        // logger.info("txpool: pushTransaction success");
       } catch (BadItemException e) {
-        logger.error("txpool: parse recv transaction failed, error={}", e.getMessage());
+        fail += 1;
+        // logger.error("txpool: parse recv transaction failed, error={}", e.getMessage());
       } catch (Exception e) {
-        logger.error("txpool: push transaction failed, error={}", e.getMessage());
+        fail += 1;
+        // logger.error("txpool: push transaction failed, error={}", e.getMessage());
       }
     }
   }
