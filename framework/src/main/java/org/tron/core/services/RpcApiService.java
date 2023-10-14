@@ -87,6 +87,7 @@ import org.tron.core.capsule.BlockCapsule;
 import org.tron.core.capsule.TransactionCapsule;
 import org.tron.core.capsule.WitnessCapsule;
 import org.tron.core.config.args.Args;
+import org.tron.core.db.BypassTransactionService;
 import org.tron.core.db.Manager;
 import org.tron.core.exception.BadItemException;
 import org.tron.core.exception.ContractValidateException;
@@ -236,6 +237,8 @@ public class RpcApiService implements Service {
       if (parameter.isNodeMetricsEnable()) {
         serverBuilder = serverBuilder.addService(monitorApi);
       }
+
+      BypassTransactionService.getInstance().start();
 
       // Set configs from config.conf or default value
       serverBuilder
