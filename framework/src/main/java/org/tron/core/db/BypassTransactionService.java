@@ -15,15 +15,14 @@ import org.zeromq.ZMQ;
 @Slf4j(topic = "DB")
 public class BypassTransactionService {
 
-  private static final int DEFAULT_BIND_PORT = 95555;
+  private static final int DEFAULT_BIND_PORT = 15555;
   private static final int DEFAULT_QUEUE_LENGTH = 10000;
   private static BypassTransactionService instance;
   private ZContext context = null;
   private ZMQ.Socket dealer = null;
   private ScheduledExecutorService fetchExecutor = Executors.newSingleThreadScheduledExecutor();
 
-  @Autowired
-  Manager manager;
+  private Manager manager = null;
 
   public static BypassTransactionService getInstance() {
     if (Objects.isNull(instance)) {
@@ -36,7 +35,8 @@ public class BypassTransactionService {
     return instance;
   }
 
-  public boolean start() {
+  public boolean start(Manager dbManager) {
+    this.manager = dbManager;
     context = new ZContext(1);
     dealer = context.createSocket(SocketType.DEALER);
 
@@ -49,7 +49,7 @@ public class BypassTransactionService {
 
     context.setSndHWM(sendQueueLength);
 
-    String bindAddress = String.format("tcp://*:%d", bindPort);
+    String bindAddress = String.format("tcp://127.0.0.1:%d", bindPort);
     if (!dealer.bind(bindAddress)) {
       return false;
     }
@@ -58,7 +58,7 @@ public class BypassTransactionService {
       fetchTransaction();
     }, 1, TimeUnit.MILLISECONDS);
 
-    logger.info("start bypass TransactionService");
+    logger.info("txpool:start bypass TransactionService");
     return true;
   }
 
@@ -76,11 +76,16 @@ public class BypassTransactionService {
     while (true) {
       try {
         TransactionCapsule transactionCapsule = new TransactionCapsule(dealer.recv(0));
-        manager.pushTransaction(transactionCapsule);
+        if (manager != null) {
+          manager.pushTransaction(transactionCapsule);
+        } else {
+          logger.error("txpool: manager is null");
+        }
+				// logger.info("txpool: pushTransaction success");
       } catch (BadItemException e) {
-        logger.error("parse recv transaction failed, error={}", e.getMessage());
+        logger.error("txpool: parse recv transaction failed, error={}", e.getMessage());
       } catch (Exception e) {
-        logger.error("push transaction failed, error={}", e.getMessage());
+        logger.error("txpool: push transaction failed, error={}", e.getMessage());
       }
     }
   }

@@ -238,7 +238,7 @@ public class RpcApiService implements Service {
         serverBuilder = serverBuilder.addService(monitorApi);
       }
 
-      BypassTransactionService.getInstance().start();
+      BypassTransactionService.getInstance().start(dbManager);
 
       // Set configs from config.conf or default value
       serverBuilder
