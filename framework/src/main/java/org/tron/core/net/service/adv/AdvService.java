@@ -45,7 +45,7 @@ import org.tron.protos.Protocol.Inventory.InventoryType;
 public class AdvService {
 
   private final int MAX_INV_TO_FETCH_CACHE_SIZE = 100_000;
-  private final int MAX_TRX_CACHE_SIZE = 50_000;
+  private final int MAX_TRX_CACHE_SIZE = 10_000;
   private final int MAX_BLOCK_CACHE_SIZE = 10;
   private final int MAX_SPREAD_SIZE = 1_000;
 
@@ -66,7 +66,7 @@ public class AdvService {
       .recordStats().build();
 
   private Cache<Item, Message> trxCache = CacheBuilder.newBuilder()
-      .maximumSize(MAX_TRX_CACHE_SIZE).expireAfterWrite(1, TimeUnit.HOURS)
+      .maximumSize(MAX_TRX_CACHE_SIZE).expireAfterWrite(1, TimeUnit.MINUTES)
       .recordStats().build();
 
   private Cache<Item, Message> blockCache = CacheBuilder.newBuilder()
@@ -219,6 +219,12 @@ public class AdvService {
       consumerInvToSpread();
     }
   }
+
+	public void cacheTrx(TransactionMessage trxMsg) {
+		Item item = new Item(trxMsg.getMessageId(), InventoryType.TRX);
+		trxCount.add();
+		trxCache.put(item, new TransactionMessage(trxMsg.getTransactionCapsule().getInstance()));
+	}
 
   /*
   public void fastForward(BlockMessage msg) {

@@ -31,7 +31,7 @@ import org.tron.protos.Protocol.Transaction.Contract.ContractType;
 public class TransactionsMsgHandler implements TronMsgHandler {
 
   private static int MAX_TRX_SIZE = 50_000;
-  private static int MAX_SMART_CONTRACT_SUBMIT_SIZE = 100;
+  private static int MAX_SMART_CONTRACT_SUBMIT_SIZE = 300;
   @Autowired
   private TronNetDelegate tronNetDelegate;
   @Autowired
@@ -88,6 +88,12 @@ public class TransactionsMsgHandler implements TronMsgHandler {
     }
   }
 
+	public void processMessage(TransactionMessage trx) {
+		if (!smartContractQueue.offer(new TrxEvent(null, trx))) {
+			logger.warn("drop txpool transaction");
+		}
+	}
+
   private void check(PeerConnection peer, TransactionsMessage msg) throws P2pException {
     for (Transaction trx : msg.getTransactions().getTransactionsList()) {
       Item item = new Item(new TransactionMessage(trx).getMessageId(), InventoryType.TRX);
@@ -116,7 +122,7 @@ public class TransactionsMsgHandler implements TronMsgHandler {
   }
 
   private void handleTransaction(PeerConnection peer, TransactionMessage trx) {
-    if (peer.isDisconnect()) {
+    if (peer != null && peer.isDisconnect()) {
       logger.warn("Drop trx {} from {}, peer is disconnect", trx.getMessageId(),
           peer.getInetAddress());
       return;
@@ -131,12 +137,12 @@ public class TransactionsMsgHandler implements TronMsgHandler {
       advService.broadcast(trx);
     } catch (P2pException e) {
       logger.warn("Trx {} from peer {} process failed. type: {}, reason: {}",
-          trx.getMessageId(), peer.getInetAddress(), e.getType(), e.getMessage());
+          trx.getMessageId(), (peer != null) ? peer.getInetAddress() : "txpool", e.getType(), e.getMessage());
       if (e.getType().equals(TypeEnum.BAD_TRX)) {
         peer.disconnect(ReasonCode.BAD_TX);
       }
     } catch (Exception e) {
-      logger.error("Trx {} from peer {} process failed", trx.getMessageId(), peer.getInetAddress(),
+      logger.error("Trx {} from peer {} process failed", trx.getMessageId(), (peer != null) ? peer.getInetAddress() : "txpool",
           e);
     }
   }

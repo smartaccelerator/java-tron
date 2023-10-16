@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.tron.common.overlay.message.Message;
 import org.tron.common.parameter.CommonParameter;
 import org.tron.core.config.args.Args;
+import org.tron.core.net.BypassTransactionService;
 import org.tron.core.net.message.adv.TransactionMessage;
 import org.tron.core.net.messagehandler.TransactionsMsgHandler;
 import org.tron.core.net.peer.PeerConnection;
@@ -95,6 +96,7 @@ public class TronNetService {
       PeerManager.init();
       relayService.init();
       effectiveCheckService.init();
+      BypassTransactionService.getInstance().start(transactionsMsgHandler);
       logger.info("Net service start successfully");
     } catch (Exception e) {
       logger.error("Net service start failed", e);
