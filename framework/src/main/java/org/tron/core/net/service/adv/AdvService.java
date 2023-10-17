@@ -220,11 +220,11 @@ public class AdvService {
     }
   }
 
-	public void cacheTrx(TransactionMessage trxMsg) {
-		Item item = new Item(trxMsg.getMessageId(), InventoryType.TRX);
-		trxCount.add();
-		trxCache.put(item, new TransactionMessage(trxMsg.getTransactionCapsule().getInstance()));
-	}
+  public void cacheTrx(TransactionMessage trxMsg) {
+    Item item = new Item(trxMsg.getMessageId(), InventoryType.TRX);
+    trxCount.add();
+    trxCache.put(item, new TransactionMessage(trxMsg.getTransactionCapsule().getInstance()));
+  }
 
   /*
   public void fastForward(BlockMessage msg) {

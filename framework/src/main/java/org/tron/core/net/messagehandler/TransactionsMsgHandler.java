@@ -88,11 +88,11 @@ public class TransactionsMsgHandler implements TronMsgHandler {
     }
   }
 
-	public void processMessage(TransactionMessage trx) {
-		if (!smartContractQueue.offer(new TrxEvent(null, trx))) {
-			logger.warn("drop txpool transaction");
-		}
-	}
+  public void processMessage(TransactionMessage trx) {
+    if (!smartContractQueue.offer(new TrxEvent(null, trx))) {
+      logger.warn("drop txpool transaction");
+    }
+  }
 
   private void check(PeerConnection peer, TransactionsMessage msg) throws P2pException {
     for (Transaction trx : msg.getTransactions().getTransactionsList()) {
@@ -134,16 +134,18 @@ public class TransactionsMsgHandler implements TronMsgHandler {
 
     try {
       tronNetDelegate.pushTransaction(trx.getTransactionCapsule());
-			advService.cacheTrx(trx);
+      advService.cacheTrx(trx);
       // advService.broadcast(trx);
     } catch (P2pException e) {
       logger.warn("Trx {} from peer {} process failed. type: {}, reason: {}",
-          trx.getMessageId(), (peer != null) ? peer.getInetAddress() : "txpool", e.getType(), e.getMessage());
+          trx.getMessageId(),
+          (peer != null) ? peer.getInetAddress() : "txpool", e.getType(), e.getMessage());
       if (e.getType().equals(TypeEnum.BAD_TRX)) {
         peer.disconnect(ReasonCode.BAD_TX);
       }
     } catch (Exception e) {
-      logger.error("Trx {} from peer {} process failed", trx.getMessageId(), (peer != null) ? peer.getInetAddress() : "txpool",
+      logger.error("Trx {} from peer {} process failed",
+          trx.getMessageId(), (peer != null) ? peer.getInetAddress() : "txpool",
           e);
     }
   }
