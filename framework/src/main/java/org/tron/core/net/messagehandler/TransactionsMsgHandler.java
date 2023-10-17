@@ -134,7 +134,8 @@ public class TransactionsMsgHandler implements TronMsgHandler {
 
     try {
       tronNetDelegate.pushTransaction(trx.getTransactionCapsule());
-      advService.broadcast(trx);
+			advService.cacheTrx(trx);
+      // advService.broadcast(trx);
     } catch (P2pException e) {
       logger.warn("Trx {} from peer {} process failed. type: {}, reason: {}",
           trx.getMessageId(), (peer != null) ? peer.getInetAddress() : "txpool", e.getType(), e.getMessage());
